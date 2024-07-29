@@ -6,7 +6,7 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError(null);
 
@@ -24,21 +24,24 @@ export default function Home() {
       }
 
       const data = await response.json();
-      downloadMedia(data.mediaUrls);
+      await downloadMedia(data.mediaUrls);
     } catch (error) {
       setError(error.message);
     }
   };
 
-  const downloadMedia = (urls) => {
-    urls.forEach((url, index) => {
+  const downloadMedia = async (urls: any) => {
+    for (const [index, url] of urls.entries()) {
+      const response = await fetch(url);
+      const blob = await response.blob();
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `media-${index + 1}`;
+      a.href = URL.createObjectURL(blob);
+      a.download = `media-${index + 1}.${blob.type.split("/")[1]}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    });
+      URL.revokeObjectURL(a.href);
+    }
   };
 
   return (
